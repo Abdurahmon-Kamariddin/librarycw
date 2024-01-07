@@ -1,10 +1,65 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <fstream>
 using namespace std;
-
+//We list our members in a vector that we only allow upto 200 members
+vector<Member> members;
+//Our maximum number of members allowed in our library
+int MAX_MEMBERS = 200;
+//Each time we add a member we increment this counter (we check against this counter every time we add to make sure membercount is < MAX_MEMBERS)
+int memberCount = 0;
 //Classes
+class Book; // Forward declaration to break cyclic dependancy for member class
+class Date{
+public:
+  int day;
+  int month;
+  int year;
 
+public:
+  Date() {
+    time_t now = time(0);
+    tm* localTime = localtime(&now);
+
+    day = localTime->tm_mday;
+    month = localTime->tm_mon + 1;  // tm_mon is zero-based
+    year = localTime->tm_year + 1900;  // tm_year is years since 1900
+  }
+
+  
+  Date(int d, int m, int y) : day(d), month(m), year(y) {}
+
+  
+  int getDay() const {
+    return day;
+  }
+
+  int getMonth() const {
+    return month;
+  }
+
+  int getYear() const {
+    return year;
+  }
+
+  void setDay(int newday) {
+    day = newday;
+  }
+
+  void setMonth(int newmonth) {
+    month = newmonth;
+  }
+
+  void setYear(int newyear) {
+    year = newyear;
+  }
+
+  void displayDate() const {
+    std::cout << day << "/" << month << "/" << year;
+  }
+};
+  
 class Person{ //Here we have our Person superclass from which our librarians and member classes will inherit from as they are both persons with the corresponding attributes
 public:
   string name;
@@ -12,53 +67,96 @@ public:
   string email;
 
   string getName(){
-    return this->name;
+    return name;
   }
     
   void setName(string newname){
-    this->name = newname;
+    name = newname;
   }
 
   string getAddress(){
-    return this->address;
+    return address;
   }
 
   void setAddress(string newaddress){
-    this->address = newaddress;
+    address = newaddress;
   }
 
   string getEmail(){
-    return this->email;
+    return email;
   }
 
   void setEmail(string newemail){
-    this->email = newemail;
+    email = newemail;
   }
 };
 
 class Member : public Person
 {
-private:
+public:
+  friend class Book;
   int memberID;
   vector<Book> booksLoaned; //vector of book IDs which are the names of each book object
-public:
-  Member(int newmemberID, string newname, string newaddress, string newemail){
-    this->memberID = newmemberID;
-    this->name = newname;
-    this->address = newaddress;
-    this->email = newemail;
-  }
+
+  Member(int newmemberID): memberID(newmemberID){}
 
   int getMemberID(){
-    return this->memberID;
+    return memberID;
   }
 
   vector<Book> getBooksBorrowed(){
-    return this->booksLoaned;
+    return booksLoaned;
   }
 
   void setBooksBorrowed(){
-  }};
+  }
+};
+
+class Book{
+public:
+  friend class Member;
+  int bookID;
+  string bookName;
+  string authorFirstName;
+  string authorLastName;
+  string bookType;
+  Date dueDate;
+  Member borrower;
+
+  Book(int bookID, string bookName, string authorFirstName, string authorLastName);
+
+  int getBookID(){
+    return bookID;
+  }
+
+  string getBookName(){
+    return bookName;
+  }
+
+  string getAuthorFirstName(){
+    return authorFirstName;
+  }
+
+  string getAuthorLastName(){
+    return authorLastName;
+  }
+
+  Date getDueDate(){
+    return dueDate;
+  }
+
+  void setDueDate(Date dueDate){
+    dueDate = dueDate;
+  }
+
+  void returnBook(){
+
+  }
+
+  void borrowBook(Member borrower, Date dueDate){
+
+  }
+};
 
 class  Librarian : public Person{
 private:
@@ -66,59 +164,9 @@ private:
   int salary;
 public:
 
-  Librarian(int newstaffID, int newname, string newaddress, string newemail, int newsalary){
-    this->staffID = newstaffID;
-    this->name = newname;
-    this->address = newaddress;
-    this->email = newemail;
-    this->salary = newsalary;
-  }
-
+  Librarian(int newstaffID, int newsalary): staffID(newstaffID), salary(newsalary){}
   void addMember(){
-    string tempName;
-    string tempAddress;
-    string tempEmail;
-    int tempMemberID;
-    cout << "Please input name of new member. \n";
-    cin >> tempName;
-    cout << "Please enter the address of the new member. \n";
-    cin >> tempAddress;
-    cout << "Please input the email of the new member. \n";
-    cin >> tempEmail;
-    cout << "Please assign " << tempName << " a ID number. \n";
-    cin >> tempMemberID;
-    int submitChoice;
-    cout << "You are about to create a new library member, please review the details below and verify the creation of the following member. \n" <<
-      "Member name: " << tempName << endl <<
-      "Member address: " << tempAddress << endl <<
-      "Member email: " << tempEmail << endl <<
-      "Member ID: " << tempMemberID << endl <<
-      "Enter 2 to submit, 1 to re-enter details and 0 to go back to home screen. \n";    
-    cin >> submitChoice;
-    if((submitChoice != 2) ||(submitChoice != 1) || (submitChoice != 0)){
-      cout << "Invalid choice, please enter 2 to submit, 1 to re-enter details and 0 to go back to home screen. \n";
-      cin >> submitChoice;
-    }
-    switch(submitChoice){
-    case 0:
-	  
-      break;
-    case 1:
-      this->addMember();
-      break;
-    case 2:
-      Member* tempMemberID = new Member(tempMemberID, tempName, tempAddress, tempEmail);
-      cout << (*tempMemberID).getName << "#" << (*tempMemberID).getMemberID << " is now a member. \n";
-	  
-      break;
 
-
-      break;
-    }
-	
-	    
-	  
-	
   }
 
   void issueBook(int memberID, int bookID){
@@ -138,70 +186,40 @@ public:
   }
 
   int getStaffID(){
-    return this->staffID;
+    return staffID;
   }
 
   void setStaffID(int newstaffID){
-    this->staffID = newstaffID;
+    staffID = newstaffID;
   }
 
   int getSalary(){
-    return this->salary;
+    return salary;
   }
 
   void setSalary(int newsalary){
-    this->salary = newsalary;
+    salary = newsalary;
   }
 };
 
-class Book{
-  int bookID;
-  string bookName;
-  string authorFirstName;
-  string authorLastName;
-  string bookType;
-  Date dueDate;
-  Member borrower;
 
-  Book(int bookID, string bookName, string authorFirstName, string authorLastName);
-
-  int getBookID(){
-    return this->bookID;
-  }
-
-  string getBookName(){
-    return this->bookName;
-  }
-
-  string getAuthorFirstName(){
-    return this->authorFirstName;
-  }
-
-  string getAuthorLastName(){
-    return this->authorLastName;
-  }
-
-  Date getDueDate(){
-    return this->dueDate;
-  }
-
-  void setDueDate(Date dueDate){
-    this->dueDate = dueDate;
-  }
-
-  void returnBook(){
-
-  }
-
-  void borrowBook(Member borrower, Date dueDate){
-
-  }
-}
+int main(){
+  string name;
+  string address;
+  string email;
   
-
-  int main(){
-  Librarian 196 = new Librarian(196,"Abdurahmon", "Gatliff Road", "ak2527@live.mdx.ac.uk", 20000);
-  196.addMember();
+  cout << "Welcome fellow librarian to the Kamariddin library! \n";
+  cout << "Please enter your name to create a staff account. \n";
+  cin << ;
+  Librarian * main = new Librarian(196, 20000);
+  abdurahmon->name = "Abdurahmon";
+  abdurahmon->address =  "Gatliff Road";
+  abdurahmon->email = "ak2527@live.mdx.ac.uk";
+  cout <<  abdurahmon->getName();
+  for(int i=0; i<MAX_MEMBERS; i++){
+    members[i] = (new Member(i));
+  }
+  
   return 0;
 }
 
