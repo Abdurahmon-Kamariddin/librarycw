@@ -15,7 +15,6 @@ int MAX_MEMBERS = 200;
 //Each time we add a member we increment this counter (we check against this counter every time we add to make sure membercount is < MAX_MEMBERS)
 int memberCount = 1;
 
-
 //Classes
 class Book; // Forward declaration to break cyclic dependancy for member class
 class Date{
@@ -38,15 +37,15 @@ public:
   Date(int d, int m, int y) : day(d), month(m), year(y) {}
 
   
-  int getDay() const {
+  int getDay(){
     return day;
   }
 
-  int getMonth() const {
+  int getMonth(){
     return month;
   }
 
-  int getYear() const {
+  int getYear(){
     return year;
   }
 
@@ -62,8 +61,8 @@ public:
     year = newyear;
   }
 
-  void displayDate() const {
-    std::cout << day << "/" << month << "/" << year;
+  void displayDate(){
+    cout << day << "/" << month << "/" << year;
   }
 };
   
@@ -100,11 +99,11 @@ public:
 
 class Member : public Person
 {
-private:
+public:
   int memberID;
   vector<Book> booksLoaned; //vector of book IDs which are the names of each book object
-public:
 
+  friend class Book;
   Member(int newmemberID): memberID(newmemberID){}
 
   int getMemberID(){
@@ -128,9 +127,9 @@ public:
   string authorLastName;
   string bookType;
   Date dueDate;
-  Member borrower;
+  Member borrower();
 
-  Book(int bookID, string bookName, string authorFirstName, string authorLastName);
+  Book(int bID, string bName, string authFirstName, string authLastName): bookID(bID), bookName(bName), authorFirstName(authFirstName), authorLastName(authLastName){}
 
   int getBookID(){
     return bookID;
@@ -157,11 +156,9 @@ public:
   }
 
   void returnBook(){
-
   }
 
   void borrowBook(Member borrower, Date dueDate){
-
   }
 };
 
@@ -173,23 +170,18 @@ public:
 
   Librarian(int newstaffID, int newsalary): staffID(newstaffID), salary(newsalary){}
   void addMember(){
-
   }
 
-  void issueBook(int memberID, int bookID){
-	
+  void issueBook(int memberID, int bookID){	
   }
 
   void returnBook(int memberID, int bookID){
-
   }
 
   void displayBorrowedBooks(int memberID){
-
   }
 
-  void calcFine(int memberID){
-	
+  void calcFine(int memberID){	
   }
 
   int getStaffID(){
@@ -210,6 +202,7 @@ public:
 };
 
 int main(){
+  vector<Book> allbooks;
   //We declare the extension we are looking for as we will not hardcode the name of data file
   string datafileext = ".csv";
   //
@@ -221,35 +214,34 @@ int main(){
 	getline(bookDataFile,line); //Skip the header line with table titles
 	int bID, bPageCount;
 	string idStr, bName, pageStr , bAuthFName, bAuthLName, bType;
-	vector<Book> allbooks;
         while(getline(bookDataFile,line)){
 	  string trash; //Just a variable to hold double quote or any spaces that are left behind
 	  stringstream ss(line);
 	  getline(ss, idStr, ','); // Reading in id for book
-	  if(line.at(idStr.length() + 1) == '"'){
-	    cout << "1idStr passed into stoi is: " << idStr << endl;
+	  if(line.at(idStr.length() + 1) == '"'){ //If the name of the book starts with 
 	    bID = stoi(idStr); //Read in id as string then converted to int
-	    getline(ss, trash, '"'); 
-	    getline(ss, bName, '"');
-	    getline(ss, trash, ',');
+	    getline(ss, trash, '"'); //We remove the first double quote
+	    getline(ss, bName, '"'); //Extract the name from the previous double quote to the next one
+	    getline(ss, trash, ','); //remove the gap between the last double quote and the next comma
 	    getline(ss, pageStr, ',');
-	    cout << "1pageStr passed into stoi is: " << pageStr << endl;
 	    bPageCount = stoi(pageStr);
 	    getline(ss, bAuthFName, ',');
 	    getline(ss, bAuthLName, ',');
 	    getline(ss, bType, ',');
 	  }else{
-	    cout << "2idStr passed into stoi is: " << idStr << endl;
 	    bID = stoi(idStr); //Read in id as string then converted to int
 	    getline(ss, bName, ',');//Reading in the name
-	    getline(ss, pageStr, ',');
-	    cout << "2pageStr passed into stoi is: " << pageStr << endl;
-	    bPageCount = stoi(pageStr);
-	    getline(ss, bAuthFName, ',');
-	    getline(ss, bAuthLName, ',');
-	    getline(ss, bType, ',');
+	    getline(ss, pageStr, ',');//Reading in the string of the amount of pages
+	    bPageCount = stoi(pageStr);//converting that string into an int
+	    getline(ss, bAuthFName, ',');//Reading the author first name
+	    getline(ss, bAuthLName, ',');//Reading the author last name
+	    getline(ss, bType, ',');//Reading in the book type
 	  }
-	  cout << bID << " , " << bName << " , " << bPageCount << " , " << bAuthFName << " , " << bAuthLName << " , " << bType << endl;
+	  //Here we take each book attribute and make a Book object with it
+	  Book newBook(bID, bName, bAuthFName, bAuthLName);
+	  newBook.bookPages = bPageCount;
+	  newBook.bookType = bType;
+	  allbooks.emplace_back(newBook);
 	}
 	bookDataFile.close();
 	cout << "SUCCESS";
@@ -273,15 +265,17 @@ int main(){
   cout << "Please enter your email. \n";
   getline(cin,staffEmail);
   id = (rand() * 9000) + 1000;
-  Librarian * main = new Librarian(id, baseSalary);
-  main->name = staffName;
-  main->address =  staffAddress;
-  main->email = staffEmail;
-  main->setSalary(baseSalary);
-  cout <<  "Welcome to the Library management program " << main->getName() << "#" << main->getStaffID() << ". \n";
-  cout << "Your details are as follows - \n" << "Address: " << main->getAddress() << endl << "Email: " << main->getEmail() << endl << "Base salary: " << main->getSalary() << endl;
-  
+  Librarian main(id, baseSalary);
+  main.name = staffName;
+  main.address =  staffAddress;
+  main.email = staffEmail;
+  main.setSalary(baseSalary);
+  cout <<  "Welcome to the Library management program " << main.getName() << "#" << main.getStaffID() << ". \n";
+  cout << "Your details are as follows - \n" << "Address: " << main.getAddress() << endl << "Email: " << main.getEmail() << endl << "Base salary: " << main.getSalary() << endl;
+  // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  cout<< endl << "What action would you like to request:
   return 0;
 }
+
 
 
