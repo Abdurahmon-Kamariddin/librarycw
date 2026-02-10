@@ -17,3 +17,4 @@ Calculating overdue fines at a rate of £1 per day when books are returned late
 The program includes input validation and helpful error messages to ensure correct usage and an intuitive user experience. It does not handle payments or customer-facing features and is intended solely for librarian use.
 
 This project was designed and coded to adhere to specific system and class design as shown in the UML provided in the repo 
+<img width="725" height="864" alt="image" src="https://github.com/user-attachments/assets/05274380-0ba6-4515-9510-8f9a8c055b9a" />
